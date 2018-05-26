@@ -1,24 +1,18 @@
-# README
+# Rails with Jenkinsfile and Dockerfile
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+This is a skeletal rails application with a Jenkinsfile demonstrating
+the inclusion of MySQL as a Docker container to facilitate running
+tests against a live database.
 
-Things you may want to cover:
+## How it works:
 
-* Ruby version
+The first run of the pipeline fires up an instance of MySQL and builds the
+application's Dockerfile while MySQL is booting.
 
-* System dependencies
+Jenkins will then wait for the database to be ready before running the
+test suite and reporting the results.
 
-* Configuration
+Subsequent runs will check if the database is running and run the tests
+immediately after the container is built.
 
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+MySQL is left running because currently it takes several minutes to boot.
