@@ -26,7 +26,7 @@ pipeline {
 
           // Wait for it to be ready
           // docker.image('mysql:5').inside("--network container:mysql_test") {
-          //    Wait until mysql service is up 
+          //    Wait until mysql service is up
           //   sh 'while ! mysqladmin ping --silent; do sleep 1; done'
           // }
         }
@@ -49,7 +49,7 @@ pipeline {
 
           def testConfig =
             '--network container:mysql_test ' +
-            '--e DATABASE_URL=mysql://127.0.0.1/jenkinstest '
+            '-e DATABASE_URL=mysql2://root:my-secret-pw@127.0.0.1/jenkinstest '
 
           app.inside(testConfig) {
             sh 'rake db:setup'
