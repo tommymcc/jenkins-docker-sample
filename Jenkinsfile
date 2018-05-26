@@ -8,27 +8,33 @@ pipeline {
 
         script {
 
-          // Check if mysql is already running
-          def mysql_running = sh (
-            script: "docker inspect --format='{{.State.Running}}' mysql_test",
-            returnStdout: true
-          ).trim() == 'true'
+          // TODO: Extract database container name as a variable
 
-          if (!mysql_running) {
+          // Create a network to link the database and built container
+          sh 'docker network create jenkins_test || true'
+
+          if (databaseExists() && !databaseRunning()) {
+            sh 'docker rm jenkinsmysql'
+          }
+
+          if (!databaseExists()) {
             // Set up MySql in a container
 
             docker.image('mysql:5.7').run(
-              '--name mysql_test ' +
+              '--name jenkinsmysql ' +
+              '--network jenkins_test ' +
+              '--health-cmd=\'mysqladmin ping --silent\' ' +
+              '--health-interval=2s ' +
               '-e "MYSQL_ROOT_PASSWORD=my-secret-pw" ' +
-              '-p 127.0.0.1:3306:3306'
+              '-p "3306:3306"'
             )
           }
 
-          // Wait for it to be ready
-          // docker.image('mysql:5').inside("--network container:mysql_test") {
-          //    Wait until mysql service is up
-          //   sh 'while ! mysqladmin ping --silent; do sleep 1; done'
-          // }
+          timeout(time: 6, unit: 'MINUTES') {
+            while(!databaseHealthy()) {
+              sleep 2
+            }
+          }
         }
       }
     }
@@ -48,8 +54,8 @@ pipeline {
           def app = docker.build('jenkins-docker-sample')
 
           def testConfig =
-            '--network container:mysql_test ' +
-            '-e DATABASE_URL=mysql2://root:my-secret-pw@127.0.0.1/jenkinstest '
+            '--network jenkins_test ' +
+            '-e "DATABASE_URL=mysql2://root:my-secret-pw@jenkinsmysql/testdb"'
 
           app.inside(testConfig) {
             sh 'rake db:setup'
@@ -60,4 +66,25 @@ pipeline {
       }
     }
   }
+}
+
+def databaseHealthy(){
+  sh (
+    script: "docker inspect --format '{{.State.Health.Status}}' jenkinsmysql",
+    returnStdout: true
+  ).trim().equals('healthy')
+}
+
+def databaseRunning(){
+  sh (
+    script: "docker inspect --format='{{.State.Running}}' jenkinsmysql",
+    returnStdout: true
+  ).trim().equals('true')
+}
+
+def databaseExists(){
+  sh (
+    script: "docker inspect jenkinsmysql -f {}",
+    returnStatus: true
+  ) == 0
 }
