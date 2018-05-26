@@ -13,28 +13,7 @@ pipeline {
           // Create a network to link the database and built container
           sh 'docker network create jenkins_test || true'
 
-          if (databaseExists() && !databaseRunning()) {
-            sh 'docker rm jenkinsmysql'
-          }
-
-          if (!databaseExists()) {
-            // Set up MySql in a container
-
-            docker.image('mysql:5.7').run(
-              '--name jenkinsmysql ' +
-              '--network jenkins_test ' +
-              '--health-cmd=\'mysqladmin ping --silent\' ' +
-              '--health-interval=2s ' +
-              '-e "MYSQL_ROOT_PASSWORD=my-secret-pw" ' +
-              '-p "3306:3306"'
-            )
-          }
-
-          timeout(time: 6, unit: 'MINUTES') {
-            while(!databaseHealthy()) {
-              sleep 2
-            }
-          }
+          ensureDatabase()
         }
       }
     }
@@ -60,10 +39,41 @@ pipeline {
           app.inside(testConfig) {
             sh 'rake db:setup'
             sh 'rake db:migrate'
-            sh 'rspec'
+            sh 'rspec --format progress --format RspecJunitFormatter --out tmp/rspec.xml'
           }
         }
       }
+
+      post {
+        always {
+          junit 'tmp/rspec.xml'
+        }
+      }
+    }
+  }
+}
+
+def ensureDatabase(){
+  if (databaseExists() && !databaseRunning()) {
+    sh 'docker rm jenkinsmysql'
+  }
+
+  if (!databaseExists()) {
+    // Set up MySql in a container
+
+    docker.image('mysql:5.7').run(
+      '--name jenkinsmysql ' +
+      '--network jenkins_test ' +
+      '--health-cmd=\'mysqladmin ping --silent\' ' +
+      '--health-interval=2s ' +
+      '-e "MYSQL_ROOT_PASSWORD=my-secret-pw" ' +
+      '-p "3306:3306"'
+    )
+  }
+
+  timeout(time: 6, unit: 'MINUTES') {
+    while(!databaseHealthy()) {
+      sleep 2
     }
   }
 }
