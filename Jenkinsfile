@@ -7,23 +7,16 @@ pipeline {
       steps {
 
         script {
-
-          // TODO: Extract database container name as a variable
-
-          // Create a network to link the database and built container
+          /*
+          * Create a network to link the database and built container
+          * It's alright if it already exists
+          */
           sh 'docker network create jenkins_test || true'
 
-          ensureDatabase()
+          setupDatabase()
         }
       }
     }
-
-    /*
-        rake db:setup
-        rake db:migrate
-        docker run -p 127.0.0.1:3306:3306 --name mysql-test -e MYSQL_ROOT_PASSWORD=my-secret-pw mysql:5.7
-    */
-
 
     stage('Build Image'){
       steps {
@@ -31,6 +24,9 @@ pipeline {
 
         script {
           def app = docker.build('jenkins-docker-sample')
+
+          // If the database is still initialising, we wait
+          ensureDatabase()
 
           def testConfig =
             '--network jenkins_test ' +
@@ -53,7 +49,7 @@ pipeline {
   }
 }
 
-def ensureDatabase(){
+def setupDatabase(){
   if (databaseExists() && !databaseRunning()) {
     sh 'docker rm jenkinsmysql'
   }
@@ -70,7 +66,9 @@ def ensureDatabase(){
       '-p "3306:3306"'
     )
   }
+}
 
+def ensureDatabase(){
   timeout(time: 6, unit: 'MINUTES') {
     while(!databaseHealthy()) {
       sleep 2
