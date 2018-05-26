@@ -25,10 +25,10 @@ pipeline {
           }
 
           // Wait for it to be ready
-          docker.image('mysql:5').inside("--network container:mysql_test") {
-            /* Wait until mysql service is up */
-            sh 'while ! mysqladmin ping --silent; do sleep 1; done'
-          }
+          // docker.image('mysql:5').inside("--network container:mysql_test") {
+          //    Wait until mysql service is up 
+          //   sh 'while ! mysqladmin ping --silent; do sleep 1; done'
+          // }
         }
       }
     }
@@ -47,7 +47,11 @@ pipeline {
         script {
           def app = docker.build('jenkins-docker-sample')
 
-          app.inside {
+          def testConfig =
+            '--network container:mysql_test ' +
+            '--e DATABASE_URL=mysql://127.0.0.1/jenkinstest '
+
+          app.inside(testConfig) {
             sh 'rake db:setup'
             sh 'rake db:migrate'
             sh 'rspec'
