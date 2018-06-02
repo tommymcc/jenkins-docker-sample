@@ -1,0 +1,12 @@
+all:
+  exclude:
+    - 'bin/**/*'
+    - 'tmp/**/*'
+    - 'db/**/*'
+    - 'log/**/*'
+github:
+  slug: tommymcc/jenkins-docker-sample
+  api_endpoint: https://api.github.com/
+  web_endpoint: https://github.com/
+max_warnings: 150
+verbose: true

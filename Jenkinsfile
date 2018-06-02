@@ -18,6 +18,28 @@ pipeline {
       }
     }
 
+    stage('Lint') {
+      when { not { branch 'master' } }
+
+      environment {
+        PRONTO_GITHUB_ACCESS_TOKEN = credentials('PRONTO_GITHUB_ACCESS_TOKEN')
+        PRONTO_PULL_REQUEST_ID = env.CHANGE_ID
+      }
+
+      steps {
+        echo 'Linting...'
+
+        script {
+          docker.image('octacore:5000/codelint:latest').run(
+            '-e "MYSQL_ROOT_PASSWORD=my-secret-pw" ' +
+            "-e PRONTO_GITHUB_ACCESS_TOKEN=${$PRONTO_GITHUB_ACCESS_TOKEN} " +
+            "-e PRONTO_PULL_REQUEST_ID=${$PRONTO_PULL_REQUEST_ID} " +
+            'pronto run -f github_status github_pr_review -c origin/master'
+          )
+        }
+      }
+    }
+
     stage('Build Image'){
       steps {
         echo 'Building docker image...'

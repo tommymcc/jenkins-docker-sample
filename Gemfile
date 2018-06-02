@@ -45,3 +45,5 @@ end
 
 # Required for alpine dockerfile
 gem 'tzinfo-data'
+
+gem 'rubocop', require: false
