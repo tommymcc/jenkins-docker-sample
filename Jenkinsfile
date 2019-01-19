@@ -1,3 +1,26 @@
+def jobs = ["Test group A", "Test group B", "Test group B"]
+
+def parallelStagesMap = jobs.collectEntries {
+    ["${it}" : generateStage(it)]
+}
+
+def generateStage(job) {
+  return {
+    stage("stage: ${job}") {
+      agent {
+        docker {
+          image 'alpine:latest'
+        }
+      }
+
+      echo "This is ${job}."
+      sh "id"
+      sh script: "sleep 15"
+    }
+  }
+}
+
+
 pipeline {
   agent any
 
@@ -36,6 +59,17 @@ pipeline {
           ){
             sh 'pronto run -f github_status github_pr_review -c origin/master'
           }
+        }
+      }
+    }
+
+
+    stage('Test') {
+      when { not { branch 'master' } }
+
+      steps {
+        script {
+          parallel parallelStagesMap
         }
       }
     }
