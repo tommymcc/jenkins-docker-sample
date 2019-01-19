@@ -7,15 +7,24 @@ def parallelStagesMap = jobs.collectEntries {
 def generateStage(job) {
   return {
     stage("stage: ${job}") {
-      agent {
-        docker {
-          image 'alpine:latest'
+
+      node {
+
+        agent {
+          docker {
+            image 'alpine:latest'
+          }
         }
+
+        echo "This is ${job}."
+        sh "id"
+        sh script: "sleep 15"
+
       }
 
-      echo "This is ${job}."
-      sh "id"
-      sh script: "sleep 15"
+      /*
+      
+      */
     }
   }
 }
