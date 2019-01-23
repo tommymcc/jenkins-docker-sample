@@ -10,21 +10,13 @@ def generateStage(job) {
 
       node {
 
-        agent {
-          docker {
-            image 'alpine:latest'
-          }
+        // Necessary for scripted pipeline
+        docker.image('alpine:latest').inside {
+          echo "This is ${job}."
+          sh "id"
+          sh script: "sleep 15"
         }
-
-        echo "This is ${job}."
-        sh "id"
-        sh script: "sleep 15"
-
       }
-
-      /*
-      
-      */
     }
   }
 }
