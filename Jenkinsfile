@@ -1,7 +1,7 @@
-def jobs = ["Test group A", "Test group B", "Test group B"]
+def jobs = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
 
-def parallelStagesMap = (1..15).collectEntries {
-  ["${it}" : generateStage(it)]
+def parallelStagesMap = jobs.collectEntries {
+    ["${it}" : generateStage(it)]
 }
 
 def generateStage(job) {
