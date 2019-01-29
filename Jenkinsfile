@@ -42,6 +42,7 @@ pipeline {
       }
     }
 
+    /*
     stage('Lint') {
       when { not { branch 'master' } }
 
@@ -63,7 +64,7 @@ pipeline {
         }
       }
     }
-
+    */
 
     stage('Test') {
       when { not { branch 'master' } }
