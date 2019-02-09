@@ -22,6 +22,7 @@ def generateStage(job) {
 }
 
 
+
 pipeline {
   agent any
 
