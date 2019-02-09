@@ -27,9 +27,9 @@ pipeline {
   stages {
 
     stage('Setup') {
-      milestone()
-      steps {
 
+      steps {
+        milestone()
         script {
           /*
           * Create a network to link the database and built container
