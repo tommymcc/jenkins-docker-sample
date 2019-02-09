@@ -29,6 +29,7 @@ pipeline {
   stages {
 
     stage('Setup') {
+      milestone()
       steps {
 
         script {
