@@ -30,7 +30,7 @@ pipeline {
     stage('Setup') {
 
       steps {
-        milestone
+        milestone(1)
         script {
           /*
           * Create a network to link the database and built container
