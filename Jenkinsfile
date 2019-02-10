@@ -26,6 +26,10 @@ pipeline {
 
   stages {
 
+    /*
+    * Must be a better way than this?
+    * https://stackoverflow.com/a/52811034
+    */
     stage('Cancel previous builds') {
       steps {
           milestone label: '', ordinal:  Integer.parseInt(env.BUILD_ID) - 1
