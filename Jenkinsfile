@@ -26,10 +26,16 @@ pipeline {
 
   stages {
 
+    stage('Cancel previous builds') {
+      steps {
+          milestone label: '', ordinal:  Integer.parseInt(env.BUILD_ID) - 1
+          milestone label: '', ordinal:  Integer.parseInt(env.BUILD_ID)
+      }
+    }
+
     stage('Setup') {
 
       steps {
-        milestone(1)
         script {
           /*
           * Create a network to link the database and built container
