@@ -16,3 +16,4 @@ Subsequent runs will check if the database is running and run the tests
 immediately after the container is built.
 
 MySQL is left running because currently it takes several minutes to boot.
+

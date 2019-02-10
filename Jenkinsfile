@@ -1,11 +1,46 @@
+def jobs = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+
+def parallelStagesMap = jobs.collectEntries {
+    ["${it}" : generateStage(it)]
+}
+
+def generateStage(job) {
+  return {
+    stage("stage: ${job}") {
+
+      node {
+
+        // Necessary for scripted pipeline
+        docker.image('alpine:latest').inside {
+          echo "This is ${job}."
+          sh "id"
+          sh script: "sleep 15"
+        }
+      }
+    }
+  }
+}
+
 pipeline {
   agent any
 
   stages {
 
-    stage('Setup') {
+    /*
+    * Must be a better way than this?
+    * https://stackoverflow.com/a/52811034
+    */
+    stage('Cancel previous builds') {
       steps {
+          milestone label: '', ordinal:  Integer.parseInt(env.BUILD_ID) - 1
+          milestone label: '', ordinal:  Integer.parseInt(env.BUILD_ID)
+      }
+    }
 
+
+    stage('Setup') {
+
+      steps {
         script {
           /*
           * Create a network to link the database and built container
@@ -18,6 +53,8 @@ pipeline {
       }
     }
 
+
+    /*
     stage('Lint') {
       when { not { branch 'master' } }
 
@@ -36,6 +73,17 @@ pipeline {
           ){
             sh 'pronto run -f github_status github_pr_review -c origin/master'
           }
+        }
+      }
+    }
+    */
+
+    stage('Test') {
+      when { not { branch 'master' } }
+
+      steps {
+        script {
+          parallel parallelStagesMap
         }
       }
     }
